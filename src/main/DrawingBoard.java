@@ -9,12 +9,12 @@ import objects.*;
 
 public class DrawingBoard extends JPanel {
 
-	private MouseAdapter mouseAdapter; 
+	private MouseAdapter mouseAdapter;
 	private List<GObject> gObjects;
 	private GObject target;
-	
+
 	private int gridSize = 10;
-	
+
 	public DrawingBoard() {
 		gObjects = new ArrayList<GObject>();
 		mouseAdapter = new MAdapter();
@@ -22,23 +22,45 @@ public class DrawingBoard extends JPanel {
 		addMouseMotionListener(mouseAdapter);
 		setPreferredSize(new Dimension(800, 600));
 	}
-	
+
 	public void addGObject(GObject gObject) {
-		// TODO: Implement this method.
+		// add graphic
+		gObjects.add(gObject);
+
+		repaint();
 	}
-	
+
 	public void groupAll() {
-		// TODO: Implement this method.
+		// group selected object to same group
+		CompositeGObject compositeGObject = new CompositeGObject();
+
+		for (GObject gObject : gObjects) {
+			compositeGObject.add(gObject);
+		}
+
+		gObjects.clear();
+
+		compositeGObject.recalculateRegion();
+
+		gObjects.add(compositeGObject);
+
+		repaint();
 	}
 
 	public void deleteSelected() {
-		// TODO: Implement this method.
+		// delete selected object
+		gObjects.remove(target);
+
+		repaint();
 	}
-	
+
 	public void clear() {
-		// TODO: Implement this method.
+		// clear
+		gObjects.clear();
+
+		repaint();
 	}
-	
+
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -73,20 +95,61 @@ public class DrawingBoard extends JPanel {
 	class MAdapter extends MouseAdapter {
 
 		// TODO: You need some variables here
-		
+		private int x;
+		private int y;
+
 		private void deselectAll() {
-			// TODO: Implement this method.
+
+			// deselect every selected object
+			for (GObject gObject : gObjects) {
+				gObject.deselected();
+			}
+
+			target = null;
 		}
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
-			// TODO: Implement this method.
+			this.x = e.getX();
+			this.y = e.getY();
+
+			deselectAll();
+
+			Collections.reverse(gObjects);
+
+			for (GObject gObject : gObjects) {
+				if (gObject.pointerHit(x, y)) {
+					target = gObject;
+					gObject.selected();
+
+					break;
+				}
+			}
+
+			Collections.reverse(gObjects);
+
+			repaint();
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			// TODO: Implement this method.
+			if (target != null) {
+				int currentX = e.getX();
+				int currentY = e.getY();
+				int selectedX = this.x;
+				int selectedY = this.y;
+
+				int xOffset = currentX - selectedX;
+				int yOffset = currentY - selectedY;
+
+				target.move(xOffset, yOffset);
+
+				repaint();
+
+				this.x = e.getX();
+				this.y = e.getY();
+			}
 		}
 	}
-	
+
 }
